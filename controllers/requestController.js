@@ -22,7 +22,13 @@ async function createJobHandler(req, res) {
     //console.log(result);
     //console.log(fields);
 
-    createBlobHandler(JSON.stringify(req.body.content),req.userInfo).subscribe();
+    if (result) {
+      createBlobHandler(
+        JSON.stringify(id),
+        req.body.content,
+        req.userInfo
+      ).subscribe();
+    }
 
     return res.json({
       status: 200,
