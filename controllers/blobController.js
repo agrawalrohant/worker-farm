@@ -17,7 +17,11 @@ function createBlobHandler(contentBase64, userInfo) {
       },
       (res) => {
         res.on("data", (blobResponse) => {
+          //console.log("blobResponse is " + blobResponse);
           // TODO : store the blob id in the DB and update the status
+          blobResponse = blobResponse.toString("utf8");
+          blobResponse = JSON.parse(blobResponse);
+          console.log("blob id is " + blobResponse.id);
           createJobHandler(userInfo, blobResponse.id).subscribe();
         });
       }
