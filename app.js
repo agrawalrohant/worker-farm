@@ -1,12 +1,9 @@
 const express = require("express");
 require("dotenv").config();
-
 const PORT = process.env.PORT || 3000;
 const app = express();
-
-const { createJobHandler } = require("./controllers/jobController");
 const { jwtVerification } = require("./middleware/jwtMIddleware");
-const { md5Verification } = require("./middleware/md5Middleware");
+const router = require("./routes");
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
@@ -15,5 +12,10 @@ app.listen(PORT, () => {
 app.use(express.json());
 app.use(jwtVerification);
 
-/* Routes */
-app.post("/api/imageData", md5Verification, createJobHandler);
+/* Router */
+app.use("/", router);
+
+// fallback response
+app.use(function (req, res) {
+  res.status(404).send("Resource Not Found");
+});

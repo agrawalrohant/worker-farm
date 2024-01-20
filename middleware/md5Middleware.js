@@ -3,13 +3,14 @@ const crypto = require("crypto");
 
 function md5Verification(req, res, next) {
   const imageJSONData = req.body;
-  // verify encoding is base64
   if (!imageJSONData.encoding) {
     return res.json({
       status: 400,
       message: "Bad Request : Image encoding type field 'encoding' is missing",
     });
-  } else if (imageJSONData.encoding !== "base64") {
+  }
+  // verify encoding is base64
+  else if (imageJSONData.encoding !== "base64") {
     return res.json({
       status: 500,
       message: "encoding type not supported",
