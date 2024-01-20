@@ -1,38 +1,39 @@
-const short = require("short-uuid");
-const connection = require("../db");
+const { Observable } = require("rxjs");
 
-/* Handler */
-async function createJobHandler(req, res) {
-  const id = short.generate();
-  const userInfo = req.userInfo;
-  const sql = `insert into jobservice_request ( requestId, requestStatus,createdDate,userId,userName,email,appid,clientId,tenentId, audience, issueAtDate, imageBase64) 
-  values (${JSON.stringify(id)}, "REQUEST_RECEIVED", NOW(),${parseInt(
-    userInfo.userID
-  )},${JSON.stringify(userInfo.UserName)},${JSON.stringify(userInfo.email)},${
-    userInfo.appid
-  },${userInfo.clientId},${userInfo.tenentId},${JSON.stringify(
-    userInfo.audience
-  )}, ${JSON.stringify(formatForDB(userInfo.IssueAtTime))}, ${JSON.stringify(
-    req.body.content
-  )});`;
-  try {
-    //console.log("Statement : " + sql);
-    const [result, fields] = await connection.query(sql);
-    //console.log(result);
-    //console.log(fields);
-    return res.json({
-      status: 200,
-      requestId: id,
+function createJobHandler(userInfo, blobId) {
+  return new Observable((observer) => {
+    const url = `http://${process.env.WORKER_CLOUD_API_URL}/api/v1/job`;
+    console.log("Calling Worker Job API... -> " + url);
+
+    const request = http.request(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+      (res) => {
+        res.on("data", (jobResponse) => {
+          // TODO : store the job id in the DB and update the status
+          console.log("Job submitted successfully.");
+        });
+      }
+    );
+
+    request.on("error", (error) => {
+      // TODO : Update the DB with blob error status
+      console.log("Error calling Job API : " + error);
     });
-  } catch (err) {
-    console.log(err);
-  }
+
+    request.write({
+      tenentId: userInfo.tenentId,
+      clientId: userInfo.clientId,
+      payloadLocation: `http://${process.env.WORKER_BLOB_STORE_URL}/api/v1/blob/${blobId}`,
+      payloadSize: "19213",
+    });
+    request.end();
+  });
 }
 
-function formatForDB(epochTimeStamp) {
-  //console.log("epochTimeStamp :" + epochTimeStamp);
-  //console.log("date :" + date.toISOString());
-  return new Date(epochTimeStamp).toISOString().slice(0, 19).replace("T", " ");
-}
-
-module.exports = { createJobHandler };
+module.exports = createJobHandler;
