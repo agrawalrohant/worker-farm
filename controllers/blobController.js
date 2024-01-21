@@ -6,7 +6,7 @@ const connection = require("../db");
 function createBlobHandler(requestId, contentBase64, userInfo) {
   return new Observable(async (observer) => {
     const url = `http://${process.env.WORKER_BLOB_STORE_URL}/api/v1/blob`;
-    console.log("Calling Worker Blob API... -> " + url);
+    //console.log("Calling Worker Blob API... -> " + url);
     updateStatusQuery("IMAGE_UPLOAD_IN_PROGRESS", requestId);
     const request = http.request(
       url,
@@ -23,7 +23,7 @@ function createBlobHandler(requestId, contentBase64, userInfo) {
           updateStatusQuery("IMAGE_UPLOAD_SUCCESS", requestId);
           blobResponse = blobResponse.toString("utf8");
           blobResponse = JSON.parse(blobResponse);
-          console.log("blob id is " + blobResponse.id);
+          //console.log("blob id is " + blobResponse.id);
           const [result, fields] = await connection.query(
             `insert into jobservice_blob (retryCount,blobId,lastUpdated,requestId) values (0, ${JSON.stringify(
               blobResponse.id
