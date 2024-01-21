@@ -3,7 +3,7 @@ const http = require("http");
 const connection = require("../db");
 const { response } = require("express");
 
-function createJobHandler(userInfo, blobId, requestId) {
+function createJobHandler(userInfo, blobId, requestId, payloadSize) {
   return new Observable((observer) => {
     const url = `http://${process.env.WORKER_CLOUD_API_URL}/api/v1/job`;
     //console.log("Calling Worker Job API... -> " + url);
@@ -44,7 +44,7 @@ function createJobHandler(userInfo, blobId, requestId) {
         tenentId: userInfo.tenentId,
         clientId: userInfo.clientId,
         payloadLocation: `http://${process.env.WORKER_BLOB_STORE_URL}/api/v1/blob/${blobId}`,
-        payloadSize: "19213",
+        payloadSize: payloadSize,
       })
     );
     request.end();

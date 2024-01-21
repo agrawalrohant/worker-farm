@@ -27,7 +27,12 @@ async function createJobHandler(req, res) {
         JSON.stringify(id),
         req.body.content,
         req.userInfo
-      ).subscribe();
+      ).subscribe(
+        (data) => {},
+        (error) => {
+          console.log("Error while making blob API call" + error);
+        }
+      );
     }
 
     return res.json({

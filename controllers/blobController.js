@@ -2,19 +2,23 @@ const { Observable } = require("rxjs");
 const { createJobHandler } = require("./jobController");
 const http = require("http");
 const connection = require("../db");
+const FormData = require("form-data");
+const { Buffer } = require("buffer");
+const mime = require("mime-types");
 
 function createBlobHandler(requestId, contentBase64, userInfo) {
   return new Observable(async (observer) => {
     const url = `http://${process.env.WORKER_BLOB_STORE_URL}/api/v1/blob`;
     //console.log("Calling Worker Blob API... -> " + url);
     updateStatusQuery("IMAGE_UPLOAD_IN_PROGRESS", requestId);
+    let metaInfo = getSizeAndMimeTypeInfo(contentBase64);
     const request = http.request(
       url,
       {
         method: "POST",
         headers: {
-          "Content-Type": "image/png",
-          "Content-Length": "19213",
+          "Content-Type": metaInfo.mimeType,
+          "Content-Length": metaInfo.byteChar.length,
         },
       },
       (res) => {
@@ -30,7 +34,17 @@ function createBlobHandler(requestId, contentBase64, userInfo) {
             )},NOW(),${requestId});`
           );
           if (result) {
-            createJobHandler(userInfo, blobResponse.id, requestId).subscribe();
+            createJobHandler(
+              userInfo,
+              blobResponse.id,
+              requestId,
+              metaInfo.byteChar.length
+            ).subscribe(
+              (data) => {},
+              (error) => {
+                console.log("Error while making the Job API call " + error);
+              }
+            );
           }
         });
       }
@@ -41,7 +55,15 @@ function createBlobHandler(requestId, contentBase64, userInfo) {
       updateStatusQuery("IMAGE_UPLOAD_FAILED", requestId);
     });
 
-    request.write(JSON.stringify(contentBase64));
+    const formData = new FormData();
+    formData.append(
+      "file",
+      Buffer.from(contentBase64.split(",")[1], "base64"),
+      {
+        contentType: metaInfo.contentType,
+      }
+    );
+    formData.pipe(request);
     request.end();
   });
 }
@@ -53,6 +75,16 @@ async function updateStatusQuery(newStatus, requestId) {
   //console.log(sql);
   const [result, fields] = await connection.query(sql);
   return result;
+}
+
+function getSizeAndMimeTypeInfo(contentBase64) {
+  return {
+    contentType: contentBase64.split(";")[0].split(":")[1],
+    mimeType: mime.lookup(
+      contentBase64.split(";")[0].split(":")[1].split("/")[1]
+    ),
+    byteChar: atob(contentBase64.split(",")[1]),
+  };
 }
 
 module.exports = createBlobHandler;
