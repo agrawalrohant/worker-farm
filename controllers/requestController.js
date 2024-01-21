@@ -1,9 +1,11 @@
+/** Incoming Reqest Handler */
+
 const short = require("short-uuid");
 const connection = require("../db");
 const createBlobHandler = require("./blobController");
 
-/* Handler */
-async function createJobHandler(req, res) {
+/** API to create new Job from request */
+async function createRequestHandler(req, res) {
   const id = short.generate();
   const userInfo = req.userInfo;
   const sql = `insert into jobservice_request ( requestId, requestStatus,createdDate,userId,userName,email,appid,clientId,tenentId, audience, issueAtDate, imageBase64) 
@@ -17,10 +19,7 @@ async function createJobHandler(req, res) {
     req.body.content
   )});`;
   try {
-    //console.log("Statement : " + sql);
     const [result, fields] = await connection.query(sql);
-    //console.log(result);
-    //console.log(fields);
 
     if (result) {
       createBlobHandler(
@@ -44,10 +43,9 @@ async function createJobHandler(req, res) {
   }
 }
 
+/** Internal function - used for date time conversion fron epoch to 'YYYY-MM-DD HH:MM:SS' */
 function formatForDB(epochTimeStamp) {
-  //console.log("epochTimeStamp :" + epochTimeStamp);
-  //console.log("date :" + date.toISOString());
   return new Date(epochTimeStamp).toISOString().slice(0, 19).replace("T", " ");
 }
 
-module.exports = { createJobHandler };
+module.exports = createRequestHandler;

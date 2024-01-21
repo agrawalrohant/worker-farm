@@ -1,12 +1,14 @@
+/** Job operation Handler */
+
 const { Observable } = require("rxjs");
 const http = require("http");
 const connection = require("../db");
 const { response } = require("express");
 
+/** API to handle Job Submission */
 function createJobHandler(userInfo, blobId, requestId, payloadSize) {
   return new Observable((observer) => {
     const url = `http://${process.env.WORKER_CLOUD_API_URL}/api/v1/job`;
-    //console.log("Calling Worker Job API... -> " + url);
     updateStatusQuery("JOB_SUBMIT_IN_PROGRESS", requestId);
     const request = http.request(
       url,
@@ -21,7 +23,6 @@ function createJobHandler(userInfo, blobId, requestId, payloadSize) {
           updateStatusQuery("JOB_SUBMIT_SUCCESS", requestId);
           jobResponse = jobResponse.toString("utf8");
           jobResponse = JSON.parse(jobResponse);
-          //console.log("job id is " + jobResponse.id);
           const [result, fields] = await connection.query(
             `insert into jobservice_job (retryCount,jobId,lastUpdated,requestId) values (0, ${JSON.stringify(
               jobResponse.id
@@ -51,6 +52,7 @@ function createJobHandler(userInfo, blobId, requestId, payloadSize) {
   });
 }
 
+/** API to get multiple Job status in a single go */
 async function getMultipleJobStatusHandler(req, res) {
   const idInfo = req.body;
   if (!idInfo || !idInfo.ids || !Array.isArray(idInfo.ids)) {
@@ -73,6 +75,7 @@ async function getMultipleJobStatusHandler(req, res) {
   });
 }
 
+/** API to get single Job status */
 async function getJobStatusHandler(req, res) {
   const { id } = req.params;
   const status = await findStatusById(id);
@@ -91,9 +94,8 @@ async function getJobStatusHandler(req, res) {
   }
 }
 
+/** Internal Api to find the status from requestID */
 async function findStatusById(requestId) {
-  //console.log("entered findStatusById for " + requestId);
-  // query jobservice_request, if status is JOB_SUBMIT_SUCCESS
   let sql = `Select requestStatus from jobservice_request where requestId = ${JSON.stringify(
     requestId
   )};`;
@@ -107,10 +109,10 @@ async function findStatusById(requestId) {
   }
 }
 
+/** API to get status from external service */
 function getResultsFromWorkerCloudAPI(requestId) {
   return new Observable((observer) => {
     const url = `http://${process.env.WORKER_CLOUD_API_URL}/api/v1/job/${requestId}/status`;
-    //console.log("Calling Worker Cloud API... for " + requestId);
     const request = http.get(url, (res) => {
       let result = "";
       res.on("data", (data) => {
@@ -134,11 +136,11 @@ function getResultsFromWorkerCloudAPI(requestId) {
   });
 }
 
+/** Internal API to update newStatus for request in DB table jobservice_request */
 async function updateStatusQuery(newStatus, requestId) {
   let sql = `update jobservice_request set requestStatus = ${JSON.stringify(
     newStatus
   )} where requestId = ${requestId};`;
-  //console.log(sql);
   const [result, fields] = await connection.query(sql);
   return result;
 }

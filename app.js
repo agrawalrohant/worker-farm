@@ -5,14 +5,17 @@ const app = express();
 const { jwtVerification } = require("./middleware/jwtMIddleware");
 const router = require("./routes");
 
+/* Start the server*/
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 
 app.use(express.json());
+
+/* Perform JWT taken verification*/
 app.use(jwtVerification);
 
-/* Router */
+/* API Router */
 app.use("/", router);
 
 // fallback response

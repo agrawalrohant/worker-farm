@@ -1,6 +1,7 @@
 const { Buffer } = require("buffer");
 const crypto = require("crypto");
 
+/* Verify the MD5 checksum for base64 image data */
 function md5Verification(req, res, next) {
   const imageJSONData = req.body;
   if (!imageJSONData.encoding) {
