@@ -1,3 +1,7 @@
+create database test1;
+
+use test1;
+
 create table JobService_Request (
 	requestId varchar(255) NOT NULL PRIMARY KEY,
     requestStatus varchar(255),

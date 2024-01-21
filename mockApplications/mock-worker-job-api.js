@@ -13,7 +13,7 @@ app.post("/api/v1/job", function (req, res) {
   });
 });
 
-app.get("/api/v1/job/:id", function (req, res) {
+app.get("/api/v1/job/:id/status", function (req, res) {
   console.log(`Received get request for ${req.params.id}.`);
   let result = "";
   let randomNumner = Math.floor(Math.random() * 3);

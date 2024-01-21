@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js",
+    "start": "node app.js",
+    "start-watch": "nodemon app.js",
     "start-debug": "node app.js",
     "start-mock-blob": "node mockApplications/mock-worker-blob-api.js",
     "start-mock-job": "node mockApplications/mock-worker-job-api.js"

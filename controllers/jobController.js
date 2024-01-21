@@ -109,7 +109,7 @@ async function findStatusById(requestId) {
 
 function getResultsFromWorkerCloudAPI(requestId) {
   return new Observable((observer) => {
-    const url = `http://${process.env.WORKER_CLOUD_API_URL}/api/v1/job/${requestId}`;
+    const url = `http://${process.env.WORKER_CLOUD_API_URL}/api/v1/job/${requestId}/status`;
     //console.log("Calling Worker Cloud API... for " + requestId);
     const request = http.get(url, (res) => {
       let result = "";
